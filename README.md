@@ -5,3 +5,6 @@
   - JSON
   - CRUD
   - Error catchers
+
+- Auth
+  - Basic Authorization
