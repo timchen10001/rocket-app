@@ -1,12 +1,12 @@
 mod user;
 mod error;
+mod auth;
 
 #[macro_use]
 extern crate rocket;
 
 use user::*;
 use error::*;
-
 
 #[rocket::main]
 async fn main() {

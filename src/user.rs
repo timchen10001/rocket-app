@@ -3,13 +3,15 @@ use rocket::{
     serde::json::{json, Value},
 };
 
+use crate::auth::BasicAuth;
+
 #[get("/")]
 pub fn hello() -> Value {
     json!("Hello World\n1")
 }
 
 #[get("/user")]
-pub fn get_users() -> Value {
+pub fn get_users(_auth: BasicAuth) -> Value {
     json!([{
         "id": 1,
         "name": "Tim"
