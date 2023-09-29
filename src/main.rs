@@ -54,6 +54,11 @@ fn delete_user(_id: i32) -> status::NoContent {
     status::NoContent
 }
 
+#[catch(404)]
+fn not_found() -> Value {
+    json!("Not Found!")
+}
+
 #[rocket::main]
 async fn main() {
     let _ = rocket::build()
@@ -68,6 +73,7 @@ async fn main() {
                 delete_user
             ],
         )
+        .register("/", catchers![not_found])
         .launch()
         .await;
 }
