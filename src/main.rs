@@ -1,12 +1,12 @@
-mod user;
-mod error;
 mod auth;
+mod error;
+mod user;
 
 #[macro_use]
 extern crate rocket;
 
-use user::*;
 use error::*;
+use user::*;
 
 #[rocket::main]
 async fn main() {
@@ -22,7 +22,7 @@ async fn main() {
                 delete_user
             ],
         )
-        .register("/", catchers![not_found])
+        .register("/", catchers![not_found, unauthorized])
         .launch()
         .await;
 }
