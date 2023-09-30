@@ -8,3 +8,4 @@
 
 - Auth
   - Basic Authorization
+  - 401 Unauthorized
