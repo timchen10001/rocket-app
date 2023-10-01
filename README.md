@@ -9,3 +9,7 @@
 - Auth
   - Basic Authorization
   - 401 Unauthorized
+
+- Database
+  - Diesel cli
+  - Migration
