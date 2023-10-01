@@ -3,7 +3,8 @@ use rocket::{
     serde::json::{json, Value},
 };
 
-use crate::auth::BasicAuth;
+use crate::{auth::BasicAuth, models::User, schema::users, DbConn};
+use diesel::prelude::*;
 
 #[get("/")]
 pub fn hello() -> Value {
@@ -11,14 +12,16 @@ pub fn hello() -> Value {
 }
 
 #[get("/user")]
-pub fn get_users(_auth: BasicAuth) -> Value {
-    json!([{
-        "id": 1,
-        "name": "Tim"
-    }, {
-        "id": 2,
-        "name": "Amy"
-    }])
+pub async fn get_users(_auth: BasicAuth, con: DbConn) -> Value {
+    con.run(|c| {
+        let user = users::table
+            .order(users::id.desc())
+            .limit(1000)
+            .load::<User>(c)
+            .expect("Query user failed");
+        json!(user)
+    })
+    .await
 }
 
 #[get("/user/<id>")]

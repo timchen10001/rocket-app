@@ -1,12 +1,18 @@
-mod auth;
-mod error;
-mod user;
-
 #[macro_use]
 extern crate rocket;
 
+mod auth;
+mod error;
+mod models;
+mod routes;
+mod schema;
+
 use error::*;
-use user::*;
+use rocket_sync_db_pools::database;
+use routes::user::*;
+
+#[database("sqlite")]
+pub struct DbConn(diesel::SqliteConnection);
 
 #[rocket::main]
 async fn main() {
@@ -23,6 +29,7 @@ async fn main() {
             ],
         )
         .register("/", catchers![not_found, unauthorized])
+        .attach(DbConn::fairing())
         .launch()
         .await;
 }
