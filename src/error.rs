@@ -9,3 +9,8 @@ pub fn not_found() -> Value {
 pub fn unauthorized() -> Value {
     json!("Unauthorized!")
 }
+
+#[catch(422)]
+pub fn unprocessable_entity() -> Value {
+    json!("Unprocessable Entity!")
+}

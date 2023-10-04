@@ -28,7 +28,10 @@ async fn main() {
                 delete_user
             ],
         )
-        .register("/", catchers![not_found, unauthorized])
+        .register(
+            "/",
+            catchers![not_found, unauthorized, unprocessable_entity],
+        )
         .attach(DbConn::fairing())
         .launch()
         .await;
