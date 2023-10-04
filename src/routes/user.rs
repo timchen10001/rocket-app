@@ -1,9 +1,14 @@
 use rocket::{
     response::status,
-    serde::json::{json, Value},
+    serde::json::{json, Json, Value},
 };
 
-use crate::{auth::BasicAuth, models::User, schema::users, DbConn};
+use crate::{
+    auth::BasicAuth,
+    models::{CreateUserRq, User},
+    schema::users,
+    DbConn,
+};
 use diesel::prelude::*;
 
 #[get("/")]
@@ -33,13 +38,16 @@ pub fn get_user(id: i32) -> Value {
     }])
 }
 
-#[post("/user", format = "json")]
-pub fn create_user() -> Value {
-    json!([{
-     "id": 3,
-     "name": "Tom",
-     "email": "tom@gmail.com"
-    }])
+#[post("/user", format = "json", data = "<new_user>")]
+pub async fn create_user(db: DbConn, new_user: Json<CreateUserRq>) -> Value {
+    db.run(|c| {
+        let inserted_user = diesel::insert_into(users::table)
+            .values(new_user.into_inner())
+            .execute(c)
+            .expect("DB error inserting");
+        json!(inserted_user)
+    })
+    .await
 }
 
 #[put("/user/<id>", format = "json")]

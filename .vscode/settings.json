@@ -1,7 +1,8 @@
 {
     "cSpell.words": [
         "AUTOINCREMENT",
-        "chrono"
+        "chrono",
+        "Insertable"
     ],
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml",
