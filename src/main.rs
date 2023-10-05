@@ -4,12 +4,12 @@ extern crate rocket;
 mod auth;
 mod error;
 mod models;
-mod routes;
 mod schema;
+mod user;
 
 use error::*;
 use rocket_sync_db_pools::database;
-use routes::user::*;
+use user::routes::*;
 
 #[database("sqlite")]
 pub struct DbConn(diesel::SqliteConnection);
