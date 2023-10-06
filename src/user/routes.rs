@@ -4,6 +4,7 @@ use crate::{
     models::{CreateUserRq, UpdateUserRq},
     DbConn,
 };
+use diesel::result::Error::NotFound;
 use rocket::{
     http::Status,
     response::status::{self, Custom},
@@ -17,7 +18,7 @@ pub fn hello() -> Value {
 }
 
 #[get("/user")]
-pub async fn get_users(__rocket_auth: BasicAuth, con: DbConn) -> Result<Value, Custom<Value>> {
+pub async fn get_users(_auth: BasicAuth, con: DbConn) -> Result<Value, Custom<Value>> {
     con.run(|c| {
         UserRepository::find_all(c, 1000)
             .map(|users| json!(users))
@@ -27,15 +28,14 @@ pub async fn get_users(__rocket_auth: BasicAuth, con: DbConn) -> Result<Value, C
 }
 
 #[get("/user/<id>")]
-pub async fn get_user(
-    id: i32,
-    __rocket_auth: BasicAuth,
-    db: DbConn,
-) -> Result<Value, Custom<Value>> {
+pub async fn get_user(id: i32, _auth: BasicAuth, db: DbConn) -> Result<Value, Custom<Value>> {
     db.run(move |c| {
         UserRepository::find(c, id)
             .map(|user| json!(user))
-            .map_err(|_| Custom(Status::NotFound, json!("User not found.")))
+            .map_err(|e| match e {
+                NotFound => Custom(Status::NotFound, json!("User not found.")),
+                _ => Custom(Status::InternalServerError, json!("User not found.")),
+            })
     })
     .await
 }
@@ -54,13 +54,16 @@ pub async fn create_user(db: DbConn, new_user: Json<CreateUserRq>) -> Result<Val
 pub async fn update_user(
     id: i32,
     db: DbConn,
-    __rocket_auth: BasicAuth,
+    _auth: BasicAuth,
     update_user: Json<UpdateUserRq>,
 ) -> Result<Value, Custom<Value>> {
     db.run(move |c| {
         UserRepository::save(c, id, update_user.into_inner())
             .map(|updated_user| json!(updated_user))
-            .map_err(|_| Custom(Status::InternalServerError, json!("Update user failed.")))
+            .map_err(|e| match e {
+                NotFound => Custom(Status::NotFound, json!("Update not found.")),
+                _ => Custom(Status::InternalServerError, json!("Update user failed.")),
+            })
     })
     .await
 }
@@ -68,7 +71,7 @@ pub async fn update_user(
 #[delete("/user/<id>", format = "json")]
 pub async fn delete_user(
     id: i32,
-    __rocket_auth: BasicAuth,
+    _auth: BasicAuth,
     db: DbConn,
 ) -> Result<status::NoContent, Custom<Value>> {
     db.run(move |c| {
