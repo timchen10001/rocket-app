@@ -2,14 +2,13 @@ use super::repository::UserRepository;
 use crate::{
     auth::BasicAuth,
     models::{CreateUserRq, UpdateUserRq},
-    schema::users,
     DbConn,
 };
-use diesel::prelude::*;
 use rocket::{
     response::status,
-    serde::json::{json, Json, Value},
+    serde::json::{Json, Value},
 };
+use serde_json::json;
 
 #[get("/")]
 pub fn hello() -> Value {
@@ -37,15 +36,9 @@ pub async fn get_user(id: i32, _auth: BasicAuth, db: DbConn) -> Value {
 #[post("/user", format = "json", data = "<new_user>")]
 pub async fn create_user(db: DbConn, new_user: Json<CreateUserRq>) -> Value {
     db.run(|c| {
-        match diesel::insert_into(users::table)
-            .values(new_user.into_inner())
-            .execute(c)
-            .expect("DB error inserting")
-        {
-            1 => json!("OK"),
-            0 => json!("USER NOT FOUND"),
-            _ => json!("Unexpected Error"),
-        }
+        let created_user =
+            UserRepository::create(c, new_user.into_inner()).expect("DB error inserting");
+        json!(created_user)
     })
     .await
 }
@@ -58,18 +51,9 @@ pub async fn update_user(
     update_user: Json<UpdateUserRq>,
 ) -> Value {
     db.run(move |c| {
-        match diesel::update(users::table.find(id))
-            .set((
-                users::name.eq(update_user.name.to_owned().unwrap_or_default()),
-                users::email.eq(update_user.email.to_owned().unwrap_or_default()),
-            ))
-            .execute(c)
-            .expect("DB error updating")
-        {
-            1 => json!("OK"),
-            0 => json!("NOT FOUND"),
-            _ => json!("Unexpected Error"),
-        }
+        let user =
+            UserRepository::save(c, id, update_user.into_inner()).expect("DB error updating");
+        json!(user)
     })
     .await
 }
@@ -77,9 +61,7 @@ pub async fn update_user(
 #[delete("/user/<id>", format = "json")]
 pub async fn delete_user(id: i32, _auth: BasicAuth, db: DbConn) -> status::NoContent {
     db.run(move |c| {
-        diesel::delete(users::table.find(id))
-            .execute(c)
-            .expect("DB error deleting");
+        UserRepository::delete(c, id).expect("DB error deleting");
         status::NoContent
     })
     .await

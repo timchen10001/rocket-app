@@ -23,7 +23,7 @@ pub struct CreateUserRq {
     pub email: String,
 }
 
-#[derive(Deserialize, Serialize, AsChangeset)]
+#[derive(Deserialize, Serialize, AsChangeset, Debug)]
 #[diesel(table_name = users)]
 pub struct UpdateUserRq {
     pub name: Option<String>,
