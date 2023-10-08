@@ -77,7 +77,12 @@ pub async fn delete_user(
     db.run(move |c| {
         UserRepository::delete(c, id)
             .map(|_| status::NoContent)
-            .map_err(|_| Custom(Status::InternalServerError, json!("Delete user failed.")))
+            .map_err(|e| {
+                match e {
+                    NotFound => Custom(Status::NotFound, json!("User not found.")),
+                    _ => Custom(Status::InternalServerError, json!("Delete user failed."))
+                }
+            })
     })
     .await
 }

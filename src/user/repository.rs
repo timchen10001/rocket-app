@@ -39,8 +39,9 @@ impl UserRepository {
     }
 
     pub fn delete(c: &mut SqliteConnection, id: i32) -> QueryResult<usize> {
+        let to_delete_user = Self::find(c, id)?;
         diesel::delete::<users::table>(users::table)
-            .filter(users::id.eq(id))
+            .filter(users::id.eq(to_delete_user.id))
             .execute(c)
     }
 
